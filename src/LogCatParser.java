@@ -83,16 +83,34 @@ public class LogCatParser implements ILogParser
     {
         if(strText.length() < 34) return false;
 
-        String strLevel = (String)strText.substring(31, 33);
-        if(strLevel.equals("D ")
-                || strLevel.equals("V ")
-                || strLevel.equals("I ")
-                || strLevel.equals("W ")
-                || strLevel.equals("E ")
-                || strLevel.equals("F ")
-                )
-            return true;
+        if (isThreadTime1(strText)) return true;
+        if (isThreadTime2(strText)) return true;
+        
         return false;
+    }
+    
+    private boolean isThreadTime1(String strText) {
+        String strLevel = (String)strText.substring(31, 33);
+
+        return strLevel.equals("D ") ? true
+                : strLevel.equals("V ") ? true
+                : strLevel.equals("I ") ? true
+                : strLevel.equals("W ") ? true
+                : strLevel.equals("E ") ? true
+                : strLevel.equals("F ") ? true : false;
+    }
+    
+    // To Support Logback-android style
+    // Support Log Level - TRACE, DEBUG, INFO, WARN, ERROR
+    private boolean isThreadTime2(String strText) {
+        
+        String strLevel = (String)strText.substring(31, 36);
+        
+        return strLevel.equals("DEBUG") ? true
+                : strLevel.equals("TRACE") ? true
+                : strLevel.equals("INFO ") ? true
+                : strLevel.equals("WARN ") ? true
+                : strLevel.equals("ERROR") ? true : false;
     }
     
 //    <4>[19553.494855] [DEBUG] USB_SEL(1) HIGH set USB mode 
