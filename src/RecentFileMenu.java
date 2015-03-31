@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.LineNumberReader;
+
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
@@ -33,7 +34,12 @@ import javax.swing.JMenuItem;
  * @author Hugues Johnson
  */
 public abstract class RecentFileMenu extends JMenu{
-	private String pathToSavedFile; //where to save the items in this menu
+	/**
+     * 
+     */
+    private static final long serialVersionUID = -7679023578496384412L;
+    
+    private String pathToSavedFile; //where to save the items in this menu
 	private int itemCount; //how many items in the menu
 	private String[] recentEntries; //the recent file entries
 	private final static String defaultText="__R_e_C_e_N_t__:_?"; //colon & question mark are not allowed as a file name in any OS that I'm aware of
@@ -70,6 +76,8 @@ public abstract class RecentFileMenu extends JMenu{
 				while(reader.ready()){
 					this.addEntry(reader.readLine(),false);
 				}
+				// Resource leak
+				reader.close();
 			} catch(Exception x){
 				x.printStackTrace();
 			}		

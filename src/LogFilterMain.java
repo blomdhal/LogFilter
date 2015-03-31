@@ -140,9 +140,9 @@ public class LogFilterMain extends JFrame implements INotiEvent
     
     //Device
     JButton                   m_btnDevice;
-    JList                     m_lDeviceList;
-    JComboBox                 m_comboDeviceCmd;
-    JComboBox                 m_comboCmd;
+    JList<String>             m_lDeviceList;
+    JComboBox<String>         m_comboDeviceCmd;
+    JComboBox<String>         m_comboCmd;
     JButton                   m_btnSetFont;
 
     //Log filter enable/disable
@@ -175,8 +175,8 @@ public class LogFilterMain extends JFrame implements INotiEvent
     
     JTextField                m_tfFontSize;
 //    JTextField                  m_tfProcessCmd;
-    JComboBox                 m_comboEncode;
-    JComboBox                 m_jcFontType;
+    JComboBox<String>         m_comboEncode;
+    JComboBox<String>         m_jcFontType;
     JButton                   m_btnRun;
     JButton                   m_btnClear;
     JToggleButton             m_tbtnPause;
@@ -227,6 +227,11 @@ public class LogFilterMain extends JFrame implements INotiEvent
         });
         
         m_recentMenu = new RecentFileMenu("RecentFile",10){
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -4031171278507174851L;
+
             public void onSelectFile(String filePath){
                 mainFrame.parseFile(new File(filePath));
             }
@@ -626,7 +631,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
 //        jpOptionDevice.setPreferredSize(new Dimension(200, 100));
 
         JPanel jpCmd = new JPanel();
-        m_comboDeviceCmd = new JComboBox();
+        m_comboDeviceCmd = new JComboBox<String>();
         m_comboDeviceCmd.addItem(COMBO_ANDROID);
 //        m_comboDeviceCmd.addItem(COMBO_IOS);
 //        m_comboDeviceCmd.addItem(CUSTOM_COMMAND);
@@ -636,7 +641,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
             {
                 if(e.getStateChange() != ItemEvent.SELECTED) return;
 
-                DefaultListModel listModel = (DefaultListModel)m_lDeviceList.getModel();
+                DefaultListModel<String> listModel = (DefaultListModel<String>) m_lDeviceList.getModel();
                 listModel.clear();
                 if (e.getItem().equals(COMBO_CUSTOM_COMMAND)) {
                     m_comboDeviceCmd.setEditable(true);
@@ -647,7 +652,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
             }
         });
 
-        final DefaultListModel listModel = new DefaultListModel();
+        final DefaultListModel<String> listModel = new DefaultListModel<String>();
         m_btnDevice = new JButton("OK");
         m_btnDevice.setMargin(new Insets(0, 0, 0, 0));
         m_btnDevice.addActionListener(m_alButtonListener);
@@ -657,7 +662,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
 
         jpOptionDevice.add(jpCmd, BorderLayout.NORTH);
 
-        m_lDeviceList = new JList(listModel);
+        m_lDeviceList = new JList<String>(listModel);
         JScrollPane vbar = new JScrollPane(m_lDeviceList);
         vbar.setPreferredSize(new Dimension(100,50));
         m_lDeviceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -665,7 +670,8 @@ public class LogFilterMain extends JFrame implements INotiEvent
         {
             public void valueChanged(ListSelectionEvent e)
             {
-                JList deviceList = (JList)e.getSource();
+                @SuppressWarnings("unchecked")
+                JList<String> deviceList = (JList<String>)e.getSource();
                 Object selectedItem = (Object)deviceList.getSelectedValue();
                 m_strSelectedDevice = "";
                 if(selectedItem != null)
@@ -1009,7 +1015,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
         JPanel optionWest = new JPanel();
 
         JLabel jlFontType = new JLabel("Font Type : ");
-        m_jcFontType = new JComboBox();
+        m_jcFontType = new JComboBox<String>();
         String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
         m_jcFontType.addItem("Dialog");
         for ( int i = 0; i < fonts.length; i++ )
@@ -1029,7 +1035,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
         m_btnSetFont.addActionListener(m_alButtonListener);
 
         JLabel jlEncode = new JLabel("Text Encode : ");
-        m_comboEncode = new JComboBox();
+        m_comboEncode = new JComboBox<String>();
         m_comboEncode.addItem("UTF-8");
         m_comboEncode.addItem("Local");
 
@@ -1051,7 +1057,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
         });
 
         JLabel jlProcessCmd = new JLabel("Cmd : ");
-        m_comboCmd = new JComboBox();
+        m_comboCmd = new JComboBox<String>();
         m_comboCmd.setPreferredSize( new Dimension( 180, 25) );
 //        m_comboCmd.setMaximumSize( m_comboCmd.getPreferredSize()  );
 //        m_comboCmd.setSize( 20000, m_comboCmd.getHeight() );
@@ -1249,7 +1255,8 @@ public class LogFilterMain extends JFrame implements INotiEvent
     {
         m_strSelectedDevice = "";
 
-        DefaultListModel listModel = (DefaultListModel)m_lDeviceList.getModel();
+        DefaultListModel<String> listModel = (DefaultListModel<String>)(m_lDeviceList.getModel());
+        
         try
         {
             listModel.clear();
@@ -1284,7 +1291,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
         catch(Exception e)
         {
             T.e("e = " + e);
-            listModel.addElement(e);
+            listModel.addElement(e.toString());
         }
     }
 
