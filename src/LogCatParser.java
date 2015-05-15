@@ -1,4 +1,6 @@
 import java.awt.Color;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.StringTokenizer;
 
 /**
@@ -132,6 +134,23 @@ public class LogCatParser implements ILogParser
         return false;
     }
     
+    // Aha radio client log
+    // 2015-05-15 09:31:58.581    305 AHA-BINARY-QueryContentParametersCommand Param code : 400f paramValue :
+    // 2015-05-15 10:05:28.903  14588 StationManagerImpl addStation
+    public boolean isAhaClientAndroid(String strText)
+    {
+        boolean ret = false;
+        
+        if(strText.length() < 31) return false;
+
+        String strLevel = (String)strText.substring((31-1));
+        if(strLevel != null && !strLevel.equals(""))
+            ret = true;
+        
+        return ret;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////
     public LogInfo getNormal(String strText)
     {
         LogInfo logInfo = new LogInfo();
@@ -190,6 +209,7 @@ public class LogCatParser implements ILogParser
         return logInfo;
     }
 
+//  <4>[19553.494855] [DEBUG] USB_SEL(1) HIGH set USB mode 
     public LogInfo getKernel(String strText)
     {
         LogInfo logInfo = new LogInfo();
@@ -211,6 +231,116 @@ public class LogCatParser implements ILogParser
         logInfo.m_TextColor = getColor(logInfo);
         return logInfo;
     }
+    
+    private static boolean isStringDateYYYYMMdd(String s) {
+        
+        boolean ret = false;
+        try {
+            SimpleDateFormat date = new SimpleDateFormat("YYYY-MM-dd");
+            date.parse(s);
+            
+            ret = true;
+        } catch (ParseException e) {
+            ret = false;
+        }
+        
+        return ret;
+    }
+    
+    private static boolean isStringDateHHmmssSSS(String s) {
+        
+        boolean ret = false;
+
+        try {
+            SimpleDateFormat date = new SimpleDateFormat("hh:mm:ss.SSS");
+            date.parse(s);
+            ret = true;
+        } catch (ParseException e) {
+            ret = false;
+        }
+        
+        return ret;
+    }
+    
+    private static boolean isStringDouble(String s) {
+        try {
+            Double.parseDouble(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+    // aha client
+    // 2015-05-15 10:05:28.903  14588 StationManagerImpl addStation
+    
+    // 04-20 12:06:02.125   146   179 D BatteryService: update start
+    public LogInfo getAhaClientAndroid(String strText)
+    {
+        LogInfo logInfo = new LogInfo();
+        
+//        System.out.println("text full: " + strText);
+        
+        // check date
+        if (LogCatParser.isStringDouble(strText.substring(0, 2)) == false) {
+            logInfo.m_strMessage = "" + strText;
+            return logInfo;
+        }
+        
+        StringTokenizer stk = new StringTokenizer(strText, TOKEN_SPACE, false);
+        
+        if(stk.hasMoreElements()) {
+            
+            String s = stk.nextToken();
+            
+            if (LogCatParser.isStringDateYYYYMMdd(s))
+                logInfo.m_strDate = s;
+            else {
+                logInfo.m_strMessage = "" + strText;
+                return logInfo;
+            }
+        }
+        
+        System.out.println("date: " + logInfo.m_strDate);
+        
+        if(stk.hasMoreElements()) {
+            String s = stk.nextToken();
+            
+            if (LogCatParser.isStringDateHHmmssSSS(s))
+                logInfo.m_strTime = s;
+            else {
+                logInfo.m_strMessage = "" + strText;
+                return logInfo;
+            }
+        }
+        
+        System.out.println("time: " + logInfo.m_strTime);
+        
+        if(stk.hasMoreElements())
+            logInfo.m_strPid = stk.nextToken().trim();
+        
+        System.out.println("pid: " + logInfo.m_strPid);
+        
+//        if(stk.hasMoreElements())
+//            logInfo.m_strThread = stk.nextToken().trim();
+//        if(stk.hasMoreElements())
+//            logInfo.m_strLogLV = stk.nextToken().trim();
+        if(stk.hasMoreElements())
+            logInfo.m_strTag = stk.nextToken();
+        
+        System.out.println("tag: " + logInfo.m_strTag);
+        
+        if(stk.hasMoreElements())
+        {
+            logInfo.m_strMessage = stk.nextToken(TOKEN_MESSAGE);
+            while(stk.hasMoreElements())
+            {
+                logInfo.m_strMessage += stk.nextToken(TOKEN_MESSAGE);
+            }
+            logInfo.m_strMessage = logInfo.m_strMessage.replaceFirst("\\): ", "");
+        }
+        logInfo.m_TextColor = getColor(logInfo);
+        return logInfo;
+    }
 
     public LogInfo parseLog(String strText)
     {
@@ -218,6 +348,9 @@ public class LogCatParser implements ILogParser
             return getNormal(strText);
         else if(isThreadTime(strText))
             return getThreadTime(strText);
+        // Sequence is important!
+        else if (isAhaClientAndroid(strText))
+            return getAhaClientAndroid(strText);
         else if(isKernel(strText))
             return getKernel(strText);
         else
