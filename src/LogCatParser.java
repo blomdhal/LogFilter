@@ -150,6 +150,22 @@ public class LogCatParser implements ILogParser
         return ret;
     }
     
+    // Aha radio client log, after 5.4
+    // [ 2015-07-25 22:27:59.204 <   344> < INFO  > ] AHA_BINARY-BPService :: BTLINK Before Read buff.length = 2, offset = 0, size = 2
+    public boolean isAhaClientAndroid2(String strText)
+    {
+        
+        if(strText.length() < 35) return false;
+        
+        String strLevel = (String)strText.substring(35, 44);
+        
+        return    strLevel.equals("<VERBOSE>") ? true
+                : strLevel.equals("<WARNING>") ? true
+                : strLevel.equals("< DEBUG >") ? true
+                : strLevel.equals("< INFO  >") ? true
+                : strLevel.equals("< ERROR >") ? true : false;
+    }
+    
     ///////////////////////////////////////////////////////////////////////////
     public LogInfo getNormal(String strText)
     {
@@ -272,7 +288,6 @@ public class LogCatParser implements ILogParser
     }
     // aha client
     // 2015-05-15 10:05:28.903  14588 StationManagerImpl addStation
-    
     // 04-20 12:06:02.125   146   179 D BatteryService: update start
     public LogInfo getAhaClientAndroid(String strText)
     {
@@ -341,6 +356,95 @@ public class LogCatParser implements ILogParser
         logInfo.m_TextColor = getColor(logInfo);
         return logInfo;
     }
+    
+    // Aha radio client log, after 5.4
+    // [ 2015-07-25 22:27:59.204 <   344> < INFO  > ] AHA_BINARY-BPService :: BTLINK Before Read buff.length = 2, offset = 0, size = 2
+    public LogInfo getAhaClientAndroid2(String _strText)
+    {
+        LogInfo logInfo = new LogInfo();
+        
+        System.out.println("1. text full: " + _strText);
+        
+        String strText = new String(_strText);
+        
+        strText = strText.replace("[", "");
+        strText = strText.replace("<", "");
+        strText = strText.replace(">", "");
+        strText = strText.replace("]", "");
+        strText = strText.replace("::", "");
+        strText = strText.substring(1);
+        
+        // 2015-07-25 22:27:59.204    344  INFO    AHA_BINARY-BPService  BTLINK Before Read buff.length = 2, offset = 0, size = 2
+        System.out.println("2. text full: " + strText);
+        
+        // check date
+        if (LogCatParser.isStringDouble(strText.substring(0, 2)) == false) {
+            logInfo.m_strMessage = "" + strText;
+            return logInfo;
+        }
+        
+        StringTokenizer stk = new StringTokenizer(strText, TOKEN_SPACE, false);
+        
+     // 2015-07-25 22:27:59.204    344  INFO    AHA_BINARY-BPService  BTLINK Before Read buff.length = 2, offset = 0, size = 2
+        if(stk.hasMoreElements()) {
+            
+            String s = stk.nextToken();
+            
+            if (LogCatParser.isStringDateYYYYMMdd(s))
+                logInfo.m_strDate = s;
+            else {
+                logInfo.m_strMessage = "" + strText;
+                return logInfo;
+            }
+        }
+        
+        System.out.println("date: " + logInfo.m_strDate);
+        
+     // 2015-07-25 22:27:59.204    344  INFO    AHA_BINARY-BPService  BTLINK Before Read buff.length = 2, offset = 0, size = 2
+        if(stk.hasMoreElements()) {
+            String s = stk.nextToken();
+            
+            if (LogCatParser.isStringDateHHmmssSSS(s))
+                logInfo.m_strTime = s;
+            else {
+                logInfo.m_strMessage = "" + strText;
+                return logInfo;
+            }
+        }
+        
+        System.out.println("time: " + logInfo.m_strTime);
+        
+     // 2015-07-25 22:27:59.204    344  INFO    AHA_BINARY-BPService  BTLINK Before Read buff.length = 2, offset = 0, size = 2
+//        if(stk.hasMoreElements())
+//            logInfo.m_strPid = stk.nextToken().trim();
+        
+        if(stk.hasMoreElements())
+            logInfo.m_strThread = stk.nextToken().trim();
+        
+        System.out.println("thread: " + logInfo.m_strThread);
+        
+        if(stk.hasMoreElements())
+            logInfo.m_strLogLV = stk.nextToken().trim();
+        
+     // 2015-07-25 22:27:59.204    344  INFO    AHA_BINARY-BPService  BTLINK Before Read buff.length = 2, offset = 0, size = 2
+        if(stk.hasMoreElements())
+            logInfo.m_strTag = stk.nextToken();
+        
+        System.out.println("tag: " + logInfo.m_strTag);
+        
+        
+        if(stk.hasMoreElements())
+        {
+            logInfo.m_strMessage = stk.nextToken(TOKEN_MESSAGE);
+            while(stk.hasMoreElements())
+            {
+                logInfo.m_strMessage += stk.nextToken(TOKEN_MESSAGE);
+            }
+            logInfo.m_strMessage = logInfo.m_strMessage.replaceFirst("\\): ", "");
+        }
+        logInfo.m_TextColor = getColor(logInfo);
+        return logInfo;
+    }
 
     public LogInfo parseLog(String strText)
     {
@@ -349,6 +453,8 @@ public class LogCatParser implements ILogParser
         else if(isThreadTime(strText))
             return getThreadTime(strText);
         // Sequence is important!
+        else if (isAhaClientAndroid2(strText))
+            return getAhaClientAndroid2(strText);
         else if (isAhaClientAndroid(strText))
             return getAhaClientAndroid(strText);
         else if(isKernel(strText))
