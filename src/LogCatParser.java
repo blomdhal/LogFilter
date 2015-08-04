@@ -155,7 +155,7 @@ public class LogCatParser implements ILogParser
     public boolean isAhaClientAndroid2(String strText)
     {
         
-        if(strText.length() < 35) return false;
+        if(strText.length() < 44) return false;
         
         String strLevel = (String)strText.substring(35, 44);
         
