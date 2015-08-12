@@ -1214,6 +1214,7 @@ public class LogFilterMain extends JFrame implements INotiEvent
                     runFilter();
                     setStatus("Parse complete");
                 } catch(Exception ioe) {
+                    ioe.printStackTrace();
                     T.e(ioe);
                 }
                 try

@@ -92,6 +92,9 @@ public class LogCatParser implements ILogParser
     }
     
     private boolean isThreadTime1(String strText) {
+        
+        if(strText.length() < 33) return false;
+        
         String strLevel = (String)strText.substring(31, 33);
 
         return strLevel.equals("D ") ? true
@@ -105,6 +108,8 @@ public class LogCatParser implements ILogParser
     // To Support Logback-android style
     // Support Log Level - TRACE, DEBUG, INFO, WARN, ERROR
     private boolean isThreadTime2(String strText) {
+        
+        if(strText.length() < 36) return false;
         
         String strLevel = (String)strText.substring(31, 36);
         
@@ -156,6 +161,7 @@ public class LogCatParser implements ILogParser
     {
         
         if(strText.length() < 44) return false;
+        if(!strText.startsWith("[")) return false;
         
         String strLevel = (String)strText.substring(35, 44);
         
