@@ -95,14 +95,29 @@ public class LogCatParser implements ILogParser
         
         if(strText.length() < 33) return false;
         
-        String strLevel = (String)strText.substring(31, 33);
+        StringTokenizer stk = new StringTokenizer(strText, TOKEN_SPACE, false);
+        
+        final int INDEX_OF_LOG_LEVEL = 4;
+        
+        for (int count = 0
+        		; stk.hasMoreElements() && count <= INDEX_OF_LOG_LEVEL
+        		; count++) {
+        		
+        	String tmp = stk.nextToken();
+        	
+        	if (count == INDEX_OF_LOG_LEVEL) {
+	              if(tmp.equals("D")
+		              || tmp.equals("V")
+		              || tmp.equals("I")
+		              || tmp.equals("W")
+		              || tmp.equals("E")
+		              || tmp.equals("F")
+	              )
+	            	  return true;        		
+        	}
+        }
 
-        return strLevel.equals("D ") ? true
-                : strLevel.equals("V ") ? true
-                : strLevel.equals("I ") ? true
-                : strLevel.equals("W ") ? true
-                : strLevel.equals("E ") ? true
-                : strLevel.equals("F ") ? true : false;
+        return false;
     }
     
     // To Support Logback-android style
